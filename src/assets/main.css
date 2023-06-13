@@ -1,0 +1,60 @@
+/* @import './base.css'; */
+
+.image-container {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+}
+.bg-gradient-green {
+  background: linear-gradient(50deg, #deff00 0%, #00c300 37%, #00c300 100%);
+  border-radius: 10px;
+  width: 80%;
+}
+
+.checkbox-item-checked {
+  background-color: gray !important;
+}
+
+@media screen and (max-width: 1024px){
+  .toolbar-wrapper .v-toolbar__content {
+    display: flex;
+    padding: 20px;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+    width: auto;
+  }
+  
+  .toolbar-wrapper {
+    box-sizing: initial;
+  }
+}
+
+
+
+@media screen and (max-width: 770px){
+  .toolbar-wrapper .v-toolbar__content {
+    justify-content: flex-start;
+  }
+}
+
+@media screen and (max-width: 600px){
+  .toolbar-wrapper {
+    box-sizing: initial;
+    flex-wrap: wrap;
+    align-content: center;
+  }
+  .toolbar-wrapper .v-toolbar__content {
+    display: flex;
+    padding: 20px;
+    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 284px;
+    width: 100%;
+    flex-wrap: wrap;
+    width: auto;
+  }
+}
