@@ -1,6 +1,8 @@
-# mobile-store
+# Mobile Store
 
-This template should help get you started developing with Vue 3 in Vite.
+I have created a single-page mobile store app that fetches data from a public API and populates products. Multiple filters can be applied.
+I have use following tools and libraries Vue3, Vuetify, TypeScript, Cypress and Vitest.  
+
 
 ## Recommended IDE Setup
 
