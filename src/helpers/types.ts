@@ -1,30 +1,28 @@
 
-export enum FilterType {
-  MANUFACTURER= 'MANUFACTURER',
-  COLORS= 'COLORS',
-  HAS_FIGE_G= 'HAS_FIGE_G',
-  HAS_E_SIM=  'HAS_E_SIM',
-  OPERATING_SYSTEM= 'OPERATING_SYSTEM',
-  REFURBISHED= 'REFURBISHED',
-} 
+export const FilterType = {
+  MANUFACTURER: 'MANUFACTURER',
+  COLORS: 'COLORS',
+  HAS_FIGE_G: 'HAS_FIGE_G',
+  HAS_E_SIM:  'HAS_E_SIM',
+  OPERATING_SYSTEM: 'OPERATING_SYSTEM',
+  REFURBISHED: 'REFURBISHED',
+} as const
+
+export type FilterType = keyof typeof FilterType
 
 export type Filters = {
-  [key in keyof typeof FilterType]?: string[]
+  [key in FilterType]?: string[]
 }
 
-export type FilterFunc = (product: Product, filterValue: string) => boolean
-export type FilterFunctionMapping = {
-  [key in keyof typeof FilterType]: FilterFunc
+export type FilterFunc<T> = (value: T, filterValue: string) => boolean
+export type FilterFunctionMapping<T> = {
+  [key in FilterType]: FilterFunc<T>
 }
-
-export interface FilterListItem {
-  id: number
-  value: string
-  label: string
-}
-
 
 export interface Product {
+  id: number
+  name: string
+  model: string
   manufacturer: string
   colors: string[]
   has_5g: boolean

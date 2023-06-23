@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import phone from '@/assets/cards/phone.svg'
 import snelpakker from '@/assets/cards/snelpakker.svg'
+import type { Product } from '../helpers/types'
 
 defineProps<{
-  product: any
+  product: Product
 }>()
 </script>
 

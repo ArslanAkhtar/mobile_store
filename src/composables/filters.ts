@@ -8,11 +8,8 @@ export default function useFilters() {
   function addFilter (type: FilterType, value: string) {
     // We don't want to allow values to be duplicated
     const values = filters.value[type] || []
-    console.log('Adding filter', type, value, values)
-    if(values.includes(value)) {
-      return // no need to add the value; it's already in the filter list
-    } else {
-      console.log('WHOOT')
+
+    if(!values.includes(value)) {
       filters.value = {
         ...filters.value,
         [type]: [...values, value]
@@ -20,18 +17,30 @@ export default function useFilters() {
     }
   }
 
-  return {
-    filters: filters.value,
-    addFilter: addFilter,
-    removeFilter: (type: FilterType, value: string) => {
-      // We don't want to allow values to be duplicated
-      const values = filters.value[type] || []
+  function removeFilter(type: FilterType, value: string) {
+    const values = filters.value[type] || []
 
-      filters.value = {
-        ...filters.value,
-        [type]: values.filter((v) => v !== value)
-      }
-    },
+    filters.value = {
+      ...filters.value,
+      [type]: values.filter((v) => v !== value)
+    }
+  }
+
+  function toggleFilter(type: FilterType, value: string) {
+    // We don't want to allow values to be duplicated
+    const values = filters.value[type] || []
+    if(values.includes(value)) {
+      removeFilter(type, value)
+    } else {
+      addFilter(type, value)
+    }
+  }
+
+  return {
+    filters: filters,
+    addFilter: addFilter,
+    removeFilter: removeFilter,
+    toggleFilter: toggleFilter,
     reset: () => {
       filters.value =  {}
     }

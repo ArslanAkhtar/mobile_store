@@ -1,7 +1,7 @@
 import { FilterType, type FilterFunc, type FilterFunctionMapping, type Filters, type Product } from "./types"
 
-export function createStringArrayFilterFunc(key: keyof Product): FilterFunc {
-    return (product: Product, filterValue: string) => {
+export function createStringArrayFilterFunc<T>(key: keyof T): FilterFunc<T> {
+    return (product: T, filterValue: string) => {
         const value = product[key]
 
         if (!(value instanceof Array)) {
@@ -12,20 +12,37 @@ export function createStringArrayFilterFunc(key: keyof Product): FilterFunc {
     }
 }
 
-export function createStringFilterFunc(key: keyof Product): FilterFunc {
-    return (product: Product, filterValue: string) => {
+export function createStringFilterFunc<T>(key: keyof T): FilterFunc<T> {
+    return (product: T, filterValue: string) => {
         return product[key] === filterValue
     }
 }
 
-export function createBooleanFilterFunc(key: keyof Product): FilterFunc {
-    return (product: Product, filterValue: string) => {
+export function createBooleanFilterFunc<T>(key: keyof T): FilterFunc<T> {
+    return (product: T, filterValue: string) => {
         const booleanValue = filterValue === 'true' ? true : false
         return product[key] === booleanValue
     }
 }
 
-export const filterFunctionMapping: FilterFunctionMapping = {
+export function createFilterApplier<T>(filterFunctionMapping: FilterFunctionMapping<T>) {
+    return (values: T[], filters: Filters): T[] => {
+        return values.filter((values) => {
+            return Object.entries(filters).every(([filterType, filterValues]) => {
+
+                // If no filters are applied for the specific type we need to handle the case seperataly
+                if(filterValues.length === 0) {
+                    return true
+                }
+
+                const filterFunc = filterFunctionMapping[filterType as any as FilterType] // TODO: Fix typings
+                return (filterValues || []).some((filterValue) => filterFunc(values, filterValue))//filterFuncitonMapping
+            })
+        })
+    }
+}
+
+export const filterFunctionMapping: FilterFunctionMapping<Product> = {
     [FilterType.MANUFACTURER]: createStringFilterFunc('manufacturer'),
     [FilterType.COLORS]: createStringArrayFilterFunc('colors'),
     [FilterType.HAS_FIGE_G]: createBooleanFilterFunc('has_5g'),
@@ -34,12 +51,4 @@ export const filterFunctionMapping: FilterFunctionMapping = {
     [FilterType.REFURBISHED]: createBooleanFilterFunc('refurbished'),
   }
 
-export function applyFilters(products: Product[], filters: Filters): Product[] {
-    return products.filter((product) => {
-        // Every filter needs to have at least one hit.
-        return Object.entries(filters).every(([filterType, filterValues]) => {
-            const filterFunc = filterFunctionMapping[filterType as any as FilterType] // TODO: Fix typings
-            return (filterValues || []).some((filterValue) => filterFunc(product, filterValue))//filterFuncitonMapping
-        })
-    })
-}
+export const applyFilters = createFilterApplier(filterFunctionMapping)

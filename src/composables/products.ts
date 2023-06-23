@@ -1,6 +1,6 @@
 import { serverAddress } from '@/helpers/constants'
 import { useFetch } from '@vueuse/core'
-import { Product } from '@/helpers/types'
+import type { Product } from '@/helpers/types'
 
 export default function useProducts() {
     // @TODO: Prob some mapping
