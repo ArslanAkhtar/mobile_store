@@ -1,150 +1,130 @@
 <script setup lang="ts">
 import { reactive, toRefs, onMounted } from 'vue'
-import { FilterTypes } from '@/helpers/enum'
-import { type Filters } from '@/helpers/types'
-import helperFunctions from '@/composables/helperFunctions'
+import { Filters, FilterType, Product } from '../helpers/types'
+import useFilters from '../composables/filters'
+import { applyFilters } from '../helpers/filters'
 
-const {
-  brands,
-  colors,
-  fiveGFilter,
-  besturingssysteemFilter,
-  eSimFilter,
-  refurbishedFilter,
-  filters,
-  filtersCheck
-} = helperFunctions
 
-const emit = defineEmits<{
-  (e: 'applyFilters'): void
-}>()
+// const {
+//   brands,
+//   colors,
+//   fiveGFilter,
+//   besturingssysteemFilter,
+//   eSimFilter,
+//   refurbishedFilter,
+//   filters,
+//   filtersCheck
+// } = helperFunctions
+
+
 
 const state = reactive({
   onHover: true,
+  models: {},
   merk: false,
   kleur: false,
   fiveG: false,
-  besturingssysteem: false,
-  eSim: false,
-  refurbished: false,
-  meestverkocht: false,
-  isVisible: !filtersCheck(),
-  selectedBrands: [] as string[],
-  selectedColors: [] as string[],
-  selectedFiveG: '',
-  selectedOperatingSystem: [] as string[],
-  selectedESim: '',
-  selectedRefurbished: ''
+  // besturingssysteem: false,
+  // eSim: false,
+  // refurbished: false,
+  // meestverkocht: false,
+  // isVisible: !filtersCheck(),
+  // selectedBrands: [] as string[],
+  // selectedColors: [] as string[],
+  // selectedFiveG: '',
+  // selectedOperatingSystem: [] as string[],
+  // selectedESim: '',
+  // selectedRefurbished: ''
 })
-
-const isSelected = (value: string, searchArray: string[]) => {
-  return searchArray.includes(value)
-}
-
-const handleSelectedArray = (selectedArray: string[], value: string) => {
-  const filterArray = selectedArray as string[]
-
-  if (filterArray.includes(value)) {
-    return filterArray.filter((item) => item !== value)
-  } else {
-    return [...filterArray, value]
-  }
-}
-
-const handleCheckboxChange = (value: string, index: number, filtertype: string) => {
-  state.isVisible = false
-
-  const filterName: keyof Filters = filtertype as keyof Filters
-
-  switch (filtertype) {
-    case FilterTypes.Brands:
-      state.selectedBrands = handleSelectedArray(state.selectedBrands, value)
-      filters[filterName] = state.selectedBrands
-      break
-    case FilterTypes.Colors:
-      state.selectedColors = handleSelectedArray(state.selectedColors, value)
-      filters[filterName] = state.selectedColors
-      break
-    case FilterTypes.FiveG:
-      state.selectedFiveG = state.selectedFiveG === value ? '' : value
-      filters[filterName] = state.selectedFiveG
-      break
-    case FilterTypes.OperatingSystem:
-      state.selectedOperatingSystem = handleSelectedArray(state.selectedOperatingSystem, value)
-      filters[filterName] = state.selectedOperatingSystem
-      break
-    case FilterTypes.ESim:
-      state.selectedESim = state.selectedESim === value ? '' : value
-      filters[filterName] = state.selectedESim
-      break
-    case FilterTypes.Refurbished:
-      state.selectedRefurbished = state.selectedRefurbished === value ? '' : value
-      filters[filterName] = state.selectedRefurbished
-      break
-    case 'meestverkocht':
-      break
-  }
-  emit('applyFilters')
-  state.isVisible = !filtersCheck()
-}
-
-const uncheckCheckbox = (value: string | boolean, key: string) => {
-  state.isVisible = false
-  const filterName: keyof Filters = key as keyof Filters
-  switch (key) {
-    case FilterTypes.Brands:
-      state.selectedBrands = state.selectedBrands.filter((item) => item !== value)
-      filters[filterName] = state.selectedBrands
-      break
-    case FilterTypes.Colors:
-      state.selectedColors = state.selectedColors.filter((item) => item !== value)
-      filters[filterName] = state.selectedColors
-      break
-    case FilterTypes.FiveG:
-      state.selectedFiveG = ''
-      filters[filterName] = state.selectedFiveG
-      break
-    case FilterTypes.OperatingSystem:
-      state.selectedOperatingSystem = state.selectedOperatingSystem.filter((item) => item !== value)
-      filters[filterName] = state.selectedOperatingSystem
-      break
-    case FilterTypes.ESim:
-      state.selectedESim = ''
-      filters[filterName] = state.selectedESim
-      break
-    case FilterTypes.Refurbished:
-      state.selectedRefurbished = ''
-      filters[filterName] = state.selectedRefurbished
-      break
-    case 'meestverkocht':
-      break
-  }
-  emit('applyFilters')
-  state.isVisible = !filtersCheck()
-}
 
 const {
   merk,
   kleur,
   fiveG,
-  besturingssysteem,
-  eSim,
-  refurbished,
-  meestverkocht,
-  isVisible,
-  selectedBrands,
-  selectedColors,
-  selectedFiveG,
-  selectedOperatingSystem,
-  selectedESim,
-  selectedRefurbished
+  models
+  // besturingssysteem,
+  // eSim,
+  // refurbished,
+  // meestverkocht,
+  // isVisible,
+  // selectedBrands,
+  // selectedColors,
+  // selectedFiveG,
+  // selectedOperatingSystem,
+  // selectedESim,
+  // selectedRefurbished
 } = toRefs(state)
+
+// const foo = useFilters()\
+
+const { products, filters } =defineProps<{
+  products: Product[]
+  filters: Filters
+}>()
+
+const filteredProducts = applyFilters(products, filters)
+
+function getPossibleFilterValues(products: Product[], key: keyof Product) {
+  const values =  products.reduce((prev, cur) => {
+    const value = cur[key]
+    if(value instanceof Array) {
+      return [...prev, ...value]
+    } else if(typeof value === 'boolean') {
+      return [...prev, value ? 'true': 'false']
+    } else {
+      return [...prev, value]
+    }
+
+  }, new Array<string>)
+
+  return [...new Set(values)]
+}
+
+const emit = defineEmits<{
+  (e: 'addFilter', type: FilterType, value: string): void
+  (e: 'removeFilter', type: FilterType, value: string): void
+}>()
+
 
 const onResize = () => {
   if (window.innerWidth < 1024) {
-    state.onHover = false
+    // state.onHover = false
   }
 }
+
+console.log(filters)
+
+const isSelected = (type: FilterType, value: string) => {
+  return (filters[type] || []).some((v) => v===value)
+}
+
+const filterList: Array<{ type: FilterType, key: keyof Product, label: string }> = [{
+  type: FilterType.MANUFACTURER,
+  key: 'manufacturer',
+  label: 'Brand'
+}, {
+  type: FilterType.COLORS,
+  key: 'colors',
+  label: 'Colors'
+}, {
+  type: FilterType.HAS_FIGE_G,
+  key: 'has_5g',
+  label: '5G'
+}, {
+  type: FilterType.OPERATING_SYSTEM,
+  key: 'operating_system',
+  label: 'Operating System'
+}, {
+  type: FilterType.HAS_E_SIM,
+  key: 'has_esim',
+  label: 'E-sim'
+}, {
+  type: FilterType.REFURBISHED,
+  key: 'refurbished',
+  label: 'Refurbished'
+}]
+
+console.log(getPossibleFilterValues(filteredProducts, 'manufacturer'))
 
 onMounted(() => {
   onResize()
@@ -158,33 +138,34 @@ onMounted(() => {
   <v-toolbar class="toolbar-wrapper" v-resize="onResize">
 
     <v-menu
-      :open-on-hover="state.onHover"
-      v-model="merk"
+      v-for="({key, type, label}, index) in filterList"
+      v-bind:key="index"
+      v-model="models[key]"
       :close-on-content-click="false"
       transition="scale-transition"
     >
       <template v-slot:activator="{ props }">
-        <v-btn v-bind="props" append-icon="mdi-menu-down"> Merk </v-btn>
+        <v-btn v-bind="props" append-icon="mdi-menu-down"> {{ label }} </v-btn>
       </template>
 
       <v-card class="pl-4 pr-4">
         <v-list>
           <v-list-item
+            v-for="(value, index) in getPossibleFilterValues(filteredProducts, key)"
             :class="{
-              'checkbox-item-checked': isSelected(brand.value, selectedBrands),
+              'checkbox-item-checked': isSelected(type, value),
               'mt-2': index === 0,
-              'mb-2': index !== brands.length - 1
+              // 'mb-2': index !== brands.length - 1
             }"
-            v-for="(brand, index) in brands"
-            :key="brand.id"
-            @click="handleCheckboxChange(brand.value, index, FilterTypes.Brands)"
+            :key="value"
+            @click="emit('addFilter', type, value)"
           >
-            {{ brand.label }}
+            {{ value }}
           </v-list-item>
         </v-list>
       </v-card>
     </v-menu>
-
+<!--
     <v-menu
       :open-on-hover="state.onHover"
       v-model="kleur"
@@ -347,9 +328,9 @@ onMounted(() => {
           <v-list-item> Not Implemented </v-list-item>
         </v-list>
       </v-card>
-    </v-menu>
+    </v-menu> -->
   </v-toolbar>
-  <div class="ma-5 filters-wrapper" v-if="isVisible">
+  <!-- <div class="ma-5 filters-wrapper" v-if="isVisible">
     <div class="filter-item" v-for="(value, key) in filters" :key="key">
       <div v-if="key !== 'fiveG'">
         <v-btn
@@ -373,5 +354,5 @@ onMounted(() => {
         }}</v-btn>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
