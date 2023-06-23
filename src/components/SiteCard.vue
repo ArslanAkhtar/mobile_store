@@ -22,7 +22,7 @@ defineProps<{
     <v-card-subtitle class="pt-4"> {{ product.model }} </v-card-subtitle>
 
     <v-card-text>
-      {{ product.name }}
+      {{ product.name }} {{ product.sort_order }}
     </v-card-text>
 
     <v-card-actions>

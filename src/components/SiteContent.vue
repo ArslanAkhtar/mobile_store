@@ -5,11 +5,12 @@ import SiteCard from './SiteCard.vue'
 import useProducts from './../composables/products'
 import useFilters from '../composables/filters'
 import { applyFilters } from '../helpers/filters'
+import { orderBySortOrder } from '@/helpers/sorting'
 
 const { filters, toggleFilter, removeFilter } = useFilters()
 const { data, isFinished } = useProducts()
 
-const filteredProducts = computed(() => applyFilters(data.value || [], filters.value))
+const filteredProducts = computed(() => orderBySortOrder(applyFilters(data.value || [], filters.value)))
 
 </script>
 <template>

@@ -29,4 +29,7 @@ export interface Product {
   has_esim: boolean
   operating_system: string
   refurbished: boolean
+  sort_order: number
+  release_date: string 
+  has_promotion: boolean
 }
