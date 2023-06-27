@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { reactive, toRefs, onMounted, ref } from "vue";
+import { ref } from "vue";
 import { applyFilters } from "../helpers/filters";
 import type { Filters, Product } from "../helpers/types";
-import { FilterType }from "../helpers/types";
+import { FilterType, SortType } from "../helpers/types";
+import type { SortFunctionMapping } from "../helpers/types";
 
 const menuStates = ref<{ [key: string]: boolean }>({});
 
 defineProps<{
   products: Product[];
   filters: Filters;
+  selectedSort: keyof SortFunctionMapping;
 }>();
 
-function getPossibleFilterValues(products: Product[], key: keyof Product, filters: Filters, type: FilterType) {
-  
+function getPossibleFilterValues(
+  products: Product[],
+  key: keyof Product,
+  filters: Filters,
+  type: FilterType
+) {
   // In order to determine what we can select for this given filters we need to apply them to the product list; except for the filter we're currently looking at
   const filteredProducts = applyFilters(products, {
     ...filters,
-    [type]: []
-  })
+    [type]: [],
+  });
 
   const vals = filteredProducts.reduce((prev, cur) => {
     const value = cur[key];
@@ -38,13 +44,8 @@ function getPossibleFilterValues(products: Product[], key: keyof Product, filter
 const emit = defineEmits<{
   (e: "toggleFilter", type: FilterType, value: string): void;
   (e: "removeFilter", type: FilterType, value: string): void;
+  (e: "selectSort", value: keyof SortFunctionMapping): void;
 }>();
-
-const onResize = () => {
-  if (window.innerWidth < 1024) {
-    // state.onHover = false
-  }
-};
 
 const isSelected = (filters: Filters, type: FilterType, value: string) => {
   return (filters[type] || []).some((v) => v === value);
@@ -54,48 +55,60 @@ const filterList: {
   [key in keyof typeof FilterType]: {
     key: keyof Product;
     label: string;
-    removeButtonPrefix?: string
-  }
+    removeButtonPrefix?: string;
+  };
 } = {
   [FilterType.MANUFACTURER]: {
     key: "manufacturer",
     label: "Brand",
   },
   [FilterType.COLORS]: {
-    
     key: "colors",
     label: "Colors",
   },
   [FilterType.HAS_FIGE_G]: {
-
     key: "has_5g",
     label: "5G",
-    removeButtonPrefix: '5G: '
+    removeButtonPrefix: "5G: ",
   },
   [FilterType.OPERATING_SYSTEM]: {
-
     key: "operating_system",
     label: "Operating System",
   },
   [FilterType.HAS_E_SIM]: {
     key: "has_esim",
     label: "E-sim",
-    removeButtonPrefix: 'E-sim: '
+    removeButtonPrefix: "E-sim: ",
   },
   [FilterType.REFURBISHED]: {
-
     key: "refurbished",
     label: "Refurbished",
   },
 };
 
-onMounted(() => {
-  onResize();
-});
+const sortingList: {
+  [key in keyof typeof SortType]: {
+    key: keyof SortFunctionMapping;
+    label: string;
+    removeButtonPrefix?: string;
+  };
+} = {
+  [SortType.MOST_SOLD]: {
+    label: "Most sold",
+    key: "orderBySortOrder" as keyof SortFunctionMapping,
+  },
+  [SortType.ACTION]: {
+    label: "Action",
+    key: "orderByPromotion" as keyof SortFunctionMapping,
+  },
+  [SortType.NEW]: {
+    label: "New",
+    key: "orderByReleaseDate" as keyof SortFunctionMapping,
+  },
+};
 </script>
 <template>
-  hello
-  <v-toolbar class="toolbar-wrapper" v-resize="onResize">
+  <v-toolbar class="toolbar-wrapper">
     <v-menu
       v-for="({ key, label }, type, index) in filterList"
       v-bind:key="index"
@@ -110,7 +123,12 @@ onMounted(() => {
       <v-card class="pl-4 pr-4">
         <v-list>
           <v-list-item
-            v-for="(value) in getPossibleFilterValues(products, key, filters, type)"
+            v-for="value in getPossibleFilterValues(
+              products,
+              key,
+              filters,
+              type
+            )"
             :class="{
               'checkbox-item-checked': isSelected(filters, type, value),
             }"
@@ -122,7 +140,6 @@ onMounted(() => {
         </v-list>
       </v-card>
     </v-menu>
-    
 
     <v-spacer></v-spacer>
 
@@ -134,12 +151,23 @@ onMounted(() => {
       transition="scale-transition"
     >
       <template v-slot:activator="{ props }">
-        <v-btn v-bind="props" append-icon="mdi-unfold-more-horizontal"> Meest verkocht </v-btn>
+        <v-btn v-bind="props" append-icon="mdi-unfold-more-horizontal">
+          Meest verkocht
+        </v-btn>
       </template>
 
       <v-card>
         <v-list>
-          <v-list-item> Not Implemented </v-list-item>
+          <v-list-item
+            :class="{
+              'checkbox-item-checked': selectedSort === sort_type.key,
+            }"
+            v-for="sort_type in sortingList"
+            :key="sort_type.key"
+            @click="emit('selectSort', sort_type.key)"
+          >
+            {{ sort_type.label }}
+          </v-list-item>
         </v-list>
       </v-card>
     </v-menu>
@@ -152,7 +180,7 @@ onMounted(() => {
           v-for="(value, index) in values"
           :key="index"
           @click="emit('removeFilter', key, value)"
-          >{{ `${filterList[key].removeButtonPrefix || ''}${value}` }}</v-btn
+          >{{ `${filterList[key].removeButtonPrefix || ""}${value}` }}</v-btn
         >
       </div>
     </div>
